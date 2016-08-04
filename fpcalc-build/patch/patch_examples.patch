@@ -1,0 +1,17 @@
+diff -Naur a/fpcalc.c b/fpcalc.c
+--- a/fpcalc.c	2016-07-22 15:46:10.528104921 -0400
++++ b/fpcalc.c	2016-07-22 13:12:05.583885808 -0400
+@@ -23,6 +23,13 @@
+ #define av_frame_free avcodec_free_frame
+ #endif
+ 
++#ifdef JNI
++	extern void jni_output(const char* format, ...);
++	#define fprintf(unused,...) jni_output(__VA_ARGS__)
++	#define printf(...)         jni_output(__VA_ARGS__)
++#endif
++
++
+ int64_t get_default_channel_layout(int nb_channels)
+ {
+ /* 51.8.0 for FFmpeg, 51.26.0 for libav. I don't know how to identify them,

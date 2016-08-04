@@ -1,0 +1,111 @@
+diff -Naur a/chromaprint/multi-configure b/chromaprint/multi-configure
+--- a/chromaprint/multi-configure	2016-07-31 15:01:51.732565331 -0400
++++ b/chromaprint/multi-configure	2016-07-31 15:09:04.633724461 -0400
+@@ -35,7 +35,7 @@
+     # The current working directory
+ HOST_PREFIX=_linux
+     # Default host platform for the ndk
+-HOST_PLATFORM=linux-x86
++HOST_PLATFORM=linux-x86_64
+     # The platform for this host within the ndk
+ 
+ if [ "$WINDIR" != "" ]
+@@ -111,7 +111,7 @@
+         then
+ 
+             CFLAGS="$CFLAGS -marm"
+-            TOOLCHAIN="$NDK/toolchains/arm-linux-androideabi-4.8/prebuilt/$HOST_PLATFORM/bin/arm-linux-androideabi-"
++            TOOLCHAIN="$NDK/toolchains/arm-linux-androideabi-4.9/prebuilt/$HOST_PLATFORM/bin/arm-linux-androideabi-"
+             FFMPEG_ARCH=arm
+ 
+             if [ "$BUILD" == "arm7" -o "$BUILD" == "arm7s" ]
+@@ -123,7 +123,7 @@
+ 
+         else    # !arm == x86
+ 
+-            TOOLCHAIN="$NDK/toolchains/x86-4.8/prebuilt/$HOST_PLATFORM/bin/i686-linux-android-"
++            TOOLCHAIN="$NDK/toolchains/x86-4.9/prebuilt/$HOST_PLATFORM/bin/i686-linux-android-"
+             FFMPEG_ARCH=x86
+ 
+         fi
+@@ -214,7 +214,7 @@
+ for PARAM in "$@"
+ do
+ 
+-    test "$PARAM" == "all" -o "$PARAM" == "win" &&  configure_one win  x86 x86
++    test "$PARAM" == "allx" -o "$PARAM" == "win" &&  configure_one win  x86 x86
+     test "$PARAM" == "all" -o "$PARAM" == "x86" &&  configure_one x86  x86 x86
+     test "$PARAM" == "all" -o "$PARAM" == "arm" &&  configure_one arm  arm armeabi
+     test "$PARAM" == "all" -o "$PARAM" == "arm7" && configure_one arm7  arm armeabi
+diff -Naur a/chromaprint/multi-make b/chromaprint/multi-make
+--- a/chromaprint/multi-make	2016-07-31 15:01:51.732565331 -0400
++++ b/chromaprint/multi-make	2016-07-31 15:09:18.681770241 -0400
+@@ -58,7 +58,7 @@
+         shift
+     fi
+ 
+-    test "$BUILD" == "all" -o "$BUILD" == "win"   && DO_BUILD=win   && make_one $@
++    test "$BUILD" == "allx" -o "$BUILD" == "win"   && DO_BUILD=win   && make_one $@
+     test "$BUILD" == "all" -o "$BUILD" == "x86"   && DO_BUILD=x86   && make_one $@
+     test "$BUILD" == "all" -o "$BUILD" == "arm"   && DO_BUILD=arm   && make_one $@
+     test "$BUILD" == "all" -o "$BUILD" == "arm7"  && DO_BUILD=arm7  && make_one $@
+diff -Naur a/ffmpeg/multi-configure b/ffmpeg/multi-configure
+--- a/ffmpeg/multi-configure	2016-07-31 15:02:05.152604204 -0400
++++ b/ffmpeg/multi-configure	2016-07-31 15:06:42.561358800 -0400
+@@ -29,7 +29,7 @@
+ 
+ HOST_PREFIX=_linux
+     # Default host platform for the ndk
+-HOST_PLATFORM=linux-x86
++HOST_PLATFORM=linux-x86_64
+     # The platform for this host within the ndk
+ 
+ if [ "$WINDIR" != "" ]
+@@ -233,7 +233,7 @@
+ for BUILD in "$@"
+ do
+ 
+-    if [ "$BUILD" == "all" -o "$BUILD" == "win" ]
++    if [ "$BUILD" == "allx" -o "$BUILD" == "win" ]
+     then
+ 
+         # --disable-yasm is 2.7+ specific fix for issue described above
+@@ -256,7 +256,7 @@
+     if [ "$BUILD" == "all" -o "$BUILD" == "x86" ]
+     then
+ 
+-        CROSS_PREFIX=$NDK/toolchains/x86-4.8/prebuilt/$HOST_PLATFORM/bin/i686-linux-android-
++        CROSS_PREFIX=$NDK/toolchains/x86-4.9/prebuilt/$HOST_PLATFORM/bin/i686-linux-android-
+         test "$MULTI_STRIP" != "" && USE_STRIP="$MULTI_STRIP $CROSS_PREFIX"
+ 
+         configure_one x86 \
+@@ -272,7 +272,7 @@
+     if [ "$BUILD" == "all" -o "$BUILD" == "arm" ]
+     then
+ 
+-        CROSS_PREFIX=$NDK/toolchains/arm-linux-androideabi-4.8/prebuilt/$HOST_PLATFORM/bin/arm-linux-androideabi-
++        CROSS_PREFIX=$NDK/toolchains/arm-linux-androideabi-4.9/prebuilt/$HOST_PLATFORM/bin/arm-linux-androideabi-
+         test "$MULTI_STRIP" != "" && USE_STRIP="$MULTI_STRIP $CROSS_PREFIX"
+ 
+         configure_one arm \
+@@ -289,7 +289,7 @@
+     if [ "$BUILD" == "all" -o "$BUILD" == "arm7" ]
+     then
+ 
+-        CROSS_PREFIX=$NDK/toolchains/arm-linux-androideabi-4.8/prebuilt/$HOST_PLATFORM/bin/arm-linux-androideabi-
++        CROSS_PREFIX=$NDK/toolchains/arm-linux-androideabi-4.9/prebuilt/$HOST_PLATFORM/bin/arm-linux-androideabi-
+         test "$MULTI_STRIP" != "" && USE_STRIP="$MULTI_STRIP $CROSS_PREFIX"
+ 
+         # early versions use enable-armvfp, later versions use enable-vfp
+diff -Naur a/ffmpeg/multi-make b/ffmpeg/multi-make
+--- a/ffmpeg/multi-make	2016-07-31 15:02:05.152604204 -0400
++++ b/ffmpeg/multi-make	2016-07-31 15:07:19.629453272 -0400
+@@ -78,7 +78,7 @@
+         export NOISY=
+     fi
+ 
+-    test "$BUILD" == "all" -o "$BUILD" == "win"  && DO_BUILD=win  && make_one $@
++    test "$BUILD" == "allx" -o "$BUILD" == "win"  && DO_BUILD=win  && make_one $@
+     test "$BUILD" == "all" -o "$BUILD" == "x86"  && DO_BUILD=x86  && make_one $@
+     test "$BUILD" == "all" -o "$BUILD" == "arm"  && DO_BUILD=arm  && make_one $@
+     test "$BUILD" == "all" -o "$BUILD" == "arm7" && DO_BUILD=arm7 && make_one $@

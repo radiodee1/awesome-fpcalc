@@ -1,0 +1,10 @@
+_build
+_install
+
+fpcalc-build/chromaprint
+fpcalc-build/ffmpeg
+fpcalc-build/kissfft
+
+fpcalc-build-complete/chromaprint
+fpcalc-build-complete/ffmpeg
+

@@ -1,0 +1,87 @@
+diff -Naur a/common.mak b/common.mak
+--- a/common.mak	2016-07-23 16:12:40.880125257 -0400
++++ b/common.mak	2016-07-23 15:14:09.544644926 -0400
+@@ -15,12 +15,27 @@
+ 
+ ifndef SUBDIR
+ 
++# 2015-07-24 prh My changes to common.mak are transparent
++# unless specific environment variables (MULTI-MAKE or
++# NO_WARNINGS) are defined.
++
++ifdef MULTI_MAKE
++	SHOWDIR=[$(notdir $(patsubst %/,%,$(dir $(CURDIR))))]
++endif
++
++
+ ifndef V
+ Q      = @
+-ECHO   = printf "$(1)\t%s\n" $(2)
+-BRIEF  = CC CXX HOSTCC HOSTLD AS YASM AR LD STRIP CP WINDRES
++ECHO   = printf "$(SHOWDIR) $(1)\t%s\n" $(2)
++BRIEF  = HOSTCC HOSTLD AS YASM AR CP WINDRES
+ SILENT = DEPCC DEPHOSTCC DEPAS DEPYASM RANLIB RM
+ 
++
++ifndef NOISY
++BRIEF  += CC CXX LD STRIP
++endif
++
++
+ MSG    = $@
+ M      = @$(call ECHO,$(TAG),$@);
+ $(foreach VAR,$(BRIEF), \
+@@ -43,6 +58,12 @@
+ HOSTCCFLAGS = $(IFLAGS) $(HOSTCPPFLAGS) $(HOSTCFLAGS)
+ LDFLAGS    := $(ALLFFLIBS:%=$(LD_PATH)lib%) $(LDFLAGS)
+ 
++
++ifdef NO_WARNINGS
++CFLAGS     += -w  -Wno-deprecated-declarations
++endif
++
++
+ define COMPILE
+        $(call $(1)DEP,$(1))
+        $($(1)) $($(1)FLAGS) $($(1)_DEPFLAGS) $($(1)_C) $($(1)_O) $<
+diff -Naur a/configure b/configure
+--- a/configure	2016-07-23 16:12:40.880125257 -0400
++++ b/configure	2016-07-23 15:14:09.548644935 -0400
+@@ -339,6 +339,7 @@
+                            (faster, but may crash)
+   --enable-memalign-hack   emulate memalign, interferes with memory debuggers
+   --sws-max-filter-size=N  the max filter size swscale uses [$sws_max_filter_size_default]
++  --enable-werrors         declare -Werror for implicit function declarations and missing prototypes [on]
+ 
+ Optimization options (experts only):
+   --disable-asm            disable all assembly optimizations
+@@ -1525,6 +1526,7 @@
+     raise_major
+     thumb
+     valgrind_backtrace
++    werrors
+     xmm_clobber_test
+ "
+ 
+@@ -2840,6 +2842,8 @@
+ enable static
+ enable swscale_alpha
+ enable valgrind_backtrace
++enable werrors
++
+ 
+ sws_max_filter_size_default=256
+ set_default sws_max_filter_size
+@@ -5506,8 +5510,10 @@
+ elif enabled gcc; then
+     check_optflags -fno-tree-vectorize
+     check_cflags -Werror=format-security
+-    check_cflags -Werror=implicit-function-declaration
+-    check_cflags -Werror=missing-prototypes
++    if enabled werrors; then
++        check_cflags -Werror=implicit-function-declaration
++        check_cflags -Werror=missing-prototypes
++    fi
+     check_cflags -Werror=return-type
+     check_cflags -Werror=vla
+     check_cflags -Wformat

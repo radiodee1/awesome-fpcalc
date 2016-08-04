@@ -1,0 +1,100 @@
+#!/bin/bash
+#-------------------------------------------------------
+#
+# This file is distributed under the GNU GENERAL PUBLIC LICENSE version 2.
+# Please see the file `COPYING.GPLv2` for details.
+#
+# You are free to modify it, and distribute in any way you see fit,
+# as long as you retain this notification and all copyrights herein.
+#
+# This software is provided without any warranty, explicit or implied.
+#
+# (c) Copyright 2015 - Patrick Horton
+
+
+FFMPEG_VERSION=3.0
+    # This is explicity set by the branch checkout
+    # and is only difference between version.
+
+export NO_WARNINGS=1
+    # NO_WARNINGS implemented in common.mak
+    # because the -w has to come after all the
+    # warnings that configure turns on ...
+
+export MULTI_MAKE=1
+    # causes common.mak to show the [platform]
+    # at the start of each compile echo
+
+START_DIR=$PWD
+HOST_PREFIX=_linux
+test "$WINDIR" != "" && HOST_PREFIX=_win
+BUILD_BASE=$START_DIR/../_build/ffmpeg/$FFMPEG_VERSION/$HOST_PREFIX
+
+
+function make_one
+{
+    echo
+    echo ----------------------------------------
+    echo "make_one($FFMPEG_VERSION) $DO_BUILD $@"
+    echo ----------------------------------------
+    echo cd $BUILD_BASE/$DO_BUILD/build
+
+    cd $BUILD_BASE/$DO_BUILD/build
+
+    make $@
+
+    if [ $? -ne 0 ]
+    then
+        echo There was an error in $PLAT BUILD $@
+        cd $START_DIR
+        exit 1
+    fi
+
+    echo
+}
+
+
+if [ $# -eq 0 ]
+then
+    echo "Usage  multi-make  (all|win|x86|arm|arm7) [noisy] [make_params]";
+else
+
+    echo ----------------------------------------------------
+    echo "multi-make($FFMPEG_VERSION) $@"
+    echo ----------------------------------------------------
+
+    BUILD=$1
+    shift
+
+    # NOISY implemented in common.mak
+
+    if [ "$1" == "noisy" ]
+    then
+        shift
+        export NOISY=1
+        echo "doing noisy build ..."
+    else
+        echo "doing quiet build ..."
+        export NOISY=
+    fi
+
+    test "$BUILD" == "allx" -o "$BUILD" == "win"  && DO_BUILD=win  && make_one $@
+    test "$BUILD" == "all" -o "$BUILD" == "x86"  && DO_BUILD=x86  && make_one $@
+    test "$BUILD" == "all" -o "$BUILD" == "arm"  && DO_BUILD=arm  && make_one $@
+    test "$BUILD" == "all" -o "$BUILD" == "arm7" && DO_BUILD=arm7 && make_one $@
+
+    # the host build only takes place if there is a host build directory
+
+    if [ -d "$BUILD_BASE/host"  ]
+    then
+        test "$BUILD" == "all" -o "$BUILD" == "host" && DO_BUILD=host && make_one $@
+    fi
+
+    echo ----------------------------------------------------
+    echo "multi-make($FFMPEG_VERSION) finished"
+    echo ----------------------------------------------------
+
+fi
+
+
+cd $START_DIR
